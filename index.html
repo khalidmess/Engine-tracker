@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellantis Engine Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            padding: 15px;
+        }
+
+        /* Header */
+        header {
+            background: #0055A4;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .current-time {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        /* Navigation */
+        nav {
+            background: #0072CE;
+            display: flex;
+            overflow-x: auto;
+            padding: 10px;
+            gap: 5px;
+        }
+
+        .nav-btn {
+            background: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .nav-btn.active {
+            background: #FF7700;
+            color: white;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+            background: white;
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-title {
+            color: #0055A4;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Login */
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #0055A4;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            border-color: #0055A4;
+            outline: none;
+        }
+
+        .btn {
+            background: #0055A4;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        /* Dashboard Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 4px solid #0055A4;
+        }
+
+        .stat-card.rouge {
+            border-top-color: #dc3545;
+        }
+
+        .stat-card.orange {
+            border-top-color: #FF7700;
+        }
+
+        .stat-card.success {
+            border-top-color: #28a745;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0055A4;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* Charts */
+        .chart-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #0055A4;
+            font-weight: 600;
+        }
+
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            height: 150px;
+            gap: 5px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: #0072CE;
+            border-radius: 3px 3px 0 0;
+            position: relative;
+            min-height: 10px;
+            transition: height 0.3s ease;
+        }
+
+        .chart-bar.goal {
+            background: #28a745;
+        }
+
+        .chart-bar.below {
+            background: #dc3545;
+        }
+
+        .chart-label {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.7rem;
+        }
+
+        /* Production Form */
+        .worker-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .production-inputs {
+            display: grid;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .input-group label {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        /* Support */
+        .support-card {
+            background: #0055A4;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .support-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        /* Filter */
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .page {
+                padding: 15px;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage">
+        <div class="login-container">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: #0055A4;">STELLANTIS</div>
+                <div style="font-size: 1.2rem; color: #0072CE;">Engine Tracker</div>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="accessCode">كود الدخول</label>
+                    <input type="password" id="accessCode" class="form-control" required placeholder="أدخل PSA">
+                </div>
+                
+                <div class="form-group hidden" id="workerForm">
+                    <label for="workerName">اسم العامل</label>
+                    <input type="text" id="workerName" class="form-control" required placeholder="اسمك">
+                    
+                    <label for="engineModel" style="margin-top: 15px;">المحطة</label>
+                    <select id="engineModel" class="form-control" required>
+                        <option value="">اختر المحطة</option>
+                        <option value="M1">M1</option>
+                        <option value="M2">M2</option>
+                        <option value="M3">M3</option>
+                        <option value="M4">M4</option>
+                        <option value="M5">M5</option>
+                        <option value="M6">M6</option>
+                        <option value="M7">M7</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn" id="loginBtn">تحقق من الكود</button>
+            </form>
+            
+            <div class="support-card">
+                <strong>الدعم الفني</strong>
+                <div style="margin-top: 10px;">
+                    <div>KHALID MESSAOUDI</div>
+                    <div style="font-size: 1.1rem; margin: 5px 0;">0611938119</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <!-- Header -->
+        <header>
+            <div class="logo">STELLANTIS Engine Tracker</div>
+            <div class="current-time" id="currentTime"></div>
+            <div id="userName"></div>
+        </header>
+
+        <!-- Navigation -->
+        <nav>
+            <button class="nav-btn active" data-page="dashboard">الرئيسية</button>
+            <button class="nav-btn" data-page="production">إدخال بيانات</button>
+            <button class="nav-btn" data-page="analytics">التحليلات</button>
+            <button class="nav-btn" data-page="support">المساعدة</button>
+        </nav>
+
+        <div class="container">
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page active">
+                <h2 class="page-title">لوحة الإنتاج</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalProduction">0</div>
+                        <div class="stat-label">الإنتاج اليوم</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="normalEngines">0</div>
+                        <div class="stat-label">محركات سليمة</div>
+                    </div>
+                    <div class="stat-card rouge">
+                        <div class="stat-value" id="rougeEngines">0</div>
+                        <div class="stat-label">ROUGE</div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="stat-value" id="orangeEngines">0</div>
+                        <div class="stat-label">ORANGE</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-value" id="qualityRate">0%</div>
+                        <div class="stat-label">نسبة الجودة</div>
+                    </div>
+                </div>
+
+                <!-- Hourly Production Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">الإنتاج بالساعة (الهدف: 50 محرك/ساعة)</div>
+                    <div class="chart" id="hourlyChart"></div>
+                </div>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn" onclick="showPage('production')">إدخال بيانات جديدة</button>
+                </div>
+            </div>
+
+            <!-- Production Page -->
+            <div id="productionPage" class="page">
+                <h2 class="page-title">إدخال بيانات الإنتاج</h2>
+                
+                <div class="worker-info">
+                    <div><strong>العامل:</strong> <span id="displayWorkerName">-</span></div>
+                    <div><strong>المحطة:</strong> <span id="displayEngineModel">-</span></div>
+                </div>
+
+                <form id="productionForm">
+                    <div class="form-group">
+                        <label for="selectedDate">التاريخ</label>
+                        <input type="date" id="selectedDate" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shiftHour">الساعة</label>
+                        <select id="shiftHour" class="form-control" required>
+                            <option value="">اختر الساعة</option>
+                            <option value="06:00">06:00</option>
+                            <option value="07:00">07:00</option>
+                            <option value="08:00">08:00</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="12:00">12:00</option>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="19:00">19:00</option>
+                            <option value="20:00">20:00</option>
+                            <option value="21:00">21:00</option>
+                            <option value="22:00">22:00</option>
+                        </select>
+                    </div>
+
+                    <div class="production-inputs">
+                        <div class="input-group">
+                            <label>المحركات المنتجة:</label>
+                            <input type="number" id="productionInput" min="0" required value="0">
+                        </div>
+                        <div class="input-group">
+                            <label>ROUGE:</label>
+                            <input type="number" id="rougeInput" min="0" required value="0">
+                        </div>
+                        <div class="input-group">
+                            <label>ORANGE:</label>
+                            <input type="number" id="orangeInput" min="0" required value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="problemsInput">ملاحظات أو مشاكل</label>
+                        <textarea id="problemsInput" class="form-control" rows="3" placeholder="أي مشاكل واجهتك..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">حفظ البيانات</button>
+                </form>
+            </div>
+
+            <!-- Analytics Page -->
+            <div id="analyticsPage" class="page">
+                <h2 class="page-title">التحليلات والإحصائيات</h2>
+                
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label for="analyticsDate">التاريخ</label>
+                        <input type="date" id="analyticsDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="analyticsPeriod">الفترة</label>
+                        <select id="analyticsPeriod" class="form-control">
+                            <option value="today">اليوم</option>
+                            <option value="week">أسبوع</option>
+                            <option value="month">شهر</option>
+                            <option value="all">جميع البيانات</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Production by Station Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">الإنتاج حسب المحطة</div>
+                    <div class="chart" id="stationChart"></div>
+                </div>
+
+                <!-- Quality by Station Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">نسبة الجودة حسب المحطة</div>
+                    <div class="chart" id="qualityChart"></div>
+                </div>
+
+                <!-- Problems by Station Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">المشاكل حسب المحطة</div>
+                    <div class="chart" id="problemsChart"></div>
+                </div>
+
+                <!-- Station Comparison -->
+                <div class="chart-container">
+                    <div class="chart-title">مقارنة أداء المحطات</div>
+                    <div id="stationComparison">
+                        <!-- سيتم تعبئتها ديناميكياً -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support Page -->
+            <div id="supportPage" class="page">
+                <h2 class="page-title">مركز المساعدة</h2>
+                
+                <div class="support-card">
+                    <strong>الدعم الفني المباشر</strong>
+                    <div style="margin-top: 15px;">
+                        <div style="font-size: 1.1rem;">KHALID MESSAOUDI</div>
+                        <div style="font-size: 1.3rem; font-weight: bold; margin: 10px 0;">0611938119</div>
+                        <div>من 8:00 إلى 17:00</div>
+                    </div>
+                </div>
+
+                <div class="support-info">
+                    <h4>كيفية الاستخدام:</h4>
+                    <p>1. أدخل كود الدخول: <strong>PSA</strong></p>
+                    <p>2. اختر المحطة التي تعمل عليها (M1 إلى M7)</p>
+                    <p>3. أدخل بيانات الإنتاج كل ساعة</p>
+                    <p>4. تابع الإحصائيات في الصفحة الرئيسية</p>
+                    <p>5. شاهد التحليلات المتقدمة في صفحة التحليلات</p>
+                </div>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn" onclick="logout()">تسجيل الخروج</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // بيانات التطبيق
+        let appData = {
+            currentUser: null,
+            productionData: [],
+            isLoggedIn: false
+        };
+
+        // عناصر DOM
+        const loginPage = document.getElementById('loginPage');
+        const mainApp = document.getElementById('mainApp');
+        const loginForm = document.getElementById('loginForm');
+        const accessCodeInput = document.getElementById('accessCode');
+        const workerForm = document.getElementById('workerForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const productionForm = document.getElementById('productionForm');
+        const currentTimeElement = document.getElementById('currentTime');
+        const userNameElement = document.getElementById('userName');
+        const displayWorkerName = document.getElementById('displayWorkerName');
+        const displayEngineModel = document.getElementById('displayEngineModel');
+
+        // تهيئة التطبيق
+        function initApp() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // تحميل البيانات
+            loadData();
+            checkLoginStatus();
+            setupEventListeners();
+            initializeDate();
+        }
+
+        function initializeDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('selectedDate').value = today;
+            document.getElementById('analyticsDate').value = today;
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ar-EG');
+            currentTimeElement.textContent = timeString;
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('stellantisMobileData');
+            if (savedData) {
+                appData = JSON.parse(savedData);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('stellantisMobileData', JSON.stringify(appData));
+        }
+
+        function checkLoginStatus() {
+            if (appData.isLoggedIn && appData.currentUser) {
+                showMainApp();
+            }
+        }
+
+        function setupEventListeners() {
+            // تحقق من كود الدخول
+            accessCodeInput.addEventListener('input', function() {
+                if (this.value.toUpperCase() === 'PSA') {
+                    workerForm.classList.remove('hidden');
+                    loginBtn.textContent = 'دخول';
+                } else {
+                    workerForm.classList.add('hidden');
+                    loginBtn.textContent = 'تحقق من الكود';
+                }
+            });
+
+            // تسجيل الدخول
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (accessCodeInput.value.toUpperCase() !== 'PSA') {
+                    alert('كود الدخول غير صحيح! أدخل PSA');
+                    return;
+                }
+
+                const workerName = document.getElementById('workerName').value;
+                const station = document.getElementById('engineModel').value;
+
+                if (!workerName || !station) {
+                    alert('الرجاء إدخال اسم العامل واختيار المحطة');
+                    return;
+                }
+
+                appData.currentUser = { name: workerName, model: station };
+                appData.isLoggedIn = true;
+                saveData();
+                showMainApp();
+            });
+
+            // إدخال بيانات الإنتاج
+            productionForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const production = parseInt(document.getElementById('productionInput').value);
+                const rouge = parseInt(document.getElementById('rougeInput').value);
+                const orange = parseInt(document.getElementById('orangeInput').value);
+                
+                if (rouge + orange > production) {
+                    alert('لا يمكن أن يكون مجموع ROUGE و ORANGE أكبر من الإنتاج الكلي');
+                    return;
+                }
+
+                const productionData = {
+                    id: Date.now(),
+                    date: document.getElementById('selectedDate').value,
+                    hour: document.getElementById('shiftHour').value,
+                    worker: appData.currentUser.name,
+                    model: appData.currentUser.model,
+                    production: production,
+                    rouge: rouge,
+                    orange: orange,
+                    problems: document.getElementById('problemsInput').value,
+                    timestamp: new Date().toLocaleString('ar-EG')
+                };
+
+                appData.productionData.push(productionData);
+                saveData();
+                
+                alert('تم حفظ البيانات بنجاح!');
+                productionForm.reset();
+                document.getElementById('productionInput').value = 0;
+                document.getElementById('rougeInput').value = 0;
+                document.getElementById('orangeInput').value = 0;
+                initializeDate();
+                
+                updateDashboard();
+                showPage('dashboard');
+            });
+
+            // تحديث التحليلات عند تغيير الفلتر
+            document.getElementById('analyticsDate').addEventListener('change', updateAnalytics);
+            document.getElementById('analyticsPeriod').addEventListener('change', updateAnalytics);
+
+            // أزرار التنقل
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.getAttribute('data-page');
+                    showPage(page);
+                    
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (page === 'analytics') {
+                        updateAnalytics();
+                    }
+                });
+            });
+        }
+
+        function showMainApp() {
+            loginPage.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            
+            userNameElement.textContent = appData.currentUser.name;
+            displayWorkerName.textContent = appData.currentUser.name;
+            displayEngineModel.textContent = appData.currentUser.model;
+            
+            updateDashboard();
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId + 'Page').classList.add('active');
+        }
+
+        function updateDashboard() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayData = appData.productionData.filter(item => item.date === today);
+            
+            const totalProduction = todayData.reduce((sum, item) => sum + item.production, 0);
+            const totalRouge = todayData.reduce((sum, item) => sum + item.rouge, 0);
+            const totalOrange = todayData.reduce((sum, item) => sum + item.orange, 0);
+            const totalNormal = totalProduction - totalRouge - totalOrange;
+            const qualityRate = totalProduction > 0 ? 
+                Math.round((totalNormal / totalProduction) * 100) : 0;
+
+            document.getElementById('totalProduction').textContent = totalProduction;
+            document.getElementById('normalEngines').textContent = totalNormal;
+            document.getElementById('rougeEngines').textContent = totalRouge;
+            document.getElementById('orangeEngines').textContent = totalOrange;
+            document.getElementById('qualityRate').textContent = qualityRate + '%';
+
+            updateHourlyChart(todayData);
+        }
+
+        function updateHourlyChart(todayData) {
+            const hourlyChart = document.getElementById('hourlyChart');
+            hourlyChart.innerHTML = '';
+            
+            // تجميع البيانات حسب الساعة
+            const hourlyData = {};
+            for (let hour = 6; hour <= 22; hour++) {
+                const hourString = hour.toString().padStart(2, '0') + ':00';
+                hourlyData[hourString] = 0;
+            }
+            
+            todayData.forEach(item => {
+                if (hourlyData[item.hour] !== undefined) {
+                    hourlyData[item.hour] += item.production;
+                }
+            });
+            
+            // إنشاء الأشرطة
+            const maxProduction = Math.max(...Object.values(hourlyData));
+            Object.keys(hourlyData).forEach(hour => {
+                const production = hourlyData[hour];
+                const percentage = maxProduction > 0 ? (production / maxProduction) * 100 : 0;
+                const barClass = production >= 50 ? 'goal' : (production > 0 ? 'below' : '');
+                
+                const bar = document.createElement('div');
+                bar.className = `chart-bar ${barClass}`;
+                bar.style.height = `${percentage}%`;
+                bar.innerHTML = `<div class="chart-label">${hour}<br>${production}</div>`;
+                
+                hourlyChart.appendChild(bar);
+            });
+        }
+
+        function updateAnalytics() {
+            const selectedDate = document.getElementById('analyticsDate').value;
+            const period = document.getElementById('analyticsPeriod').value;
+            
+            let filteredData = appData.productionData;
+            
+            if (period === 'today') {
+                filteredData = appData.productionData.filter(item => item.date === selectedDate);
+            } else if (period === 'week') {
+                const weekAgo = new Date(selectedDate);
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                filteredData = appData.productionData.filter(item => {
+                    const itemDate = new Date(item.date);
+                    return itemDate >= weekAgo && itemDate <= new Date(selectedDate);
+                });
+            } else if (period === 'month') {
+                const monthAgo = new Date(selectedDate);
+                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                filteredData = appData.productionData.filter(item => {
+                    const itemDate = new Date(item.date);
+                    return itemDate >= monthAgo && itemDate <= new Date(selectedDate);
+                });
+            }
+            
+            updateStationChart(filteredData);
+            updateQualityChart(filteredData);
+            updateProblemsChart(filteredData);
+            updateStationComparison(filteredData);
+        }
+
+        function updateStationChart(data) {
+            const stationChart = document.getElementById('stationChart');
+            stationChart.innerHTML = '';
+            
+            // تجميع البيانات حسب المحطة
+            const stationData = {};
+            ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7'].forEach(station => {
+                stationData[station] = 0;
+            });
+            
+            data.forEach(item => {
+                if (stationData[item.model] !== undefined) {
+                    stationData[item.model] += item.production;
+                }
+            });
+            
+            // إنشاء الأشرطة
+            const maxProduction = Math.max(...Object.values(stationData));
+            Object.keys(stationData).forEach(station => {
+                const production = stationData[station];
+                const percentage = maxProduction > 0 ? (production / maxProduction) * 100 : 0;
+                
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = `${percentage}%`;
+                bar.innerHTML = `<div class="chart-label">${station}<br>${production}</div>`;
+                
+                stationChart.appendChild(bar);
+            });
+        }
+
+        function updateQualityChart(data) {
+            const qualityChart = document.getElementById('qualityChart');
+            qualityChart.innerHTML = '';
+            
+            // تجميع البيانات حسب المحطة
+            const stationData = {};
+            ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7'].forEach(station => {
+                stationData[station] = { production: 0, rouge: 0, orange: 0 };
+            });
+            
+            data.forEach(item => {
+                if (stationData[item.model]) {
+                    stationData[item.model].production += item.production;
+                    stationData[item.model].rouge += item.rouge;
+                    stationData[item.model].orange += item.orange;
+                }
+            });
+            
+            // إنشاء الأشرطة
+            Object.keys(stationData).forEach(station => {
+                const stats = stationData[station];
+                const qualityRate = stats.production > 0 ? 
+                    Math.round(((stats.production - stats.rouge - stats.orange) / stats.production) * 100) : 0;
+                
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = `${qualityRate}%`;
+                bar.style.backgroundColor = getQualityColor(qualityRate);
+                bar.innerHTML = `<div class="chart-label">${station}<br>${qualityRate}%</div>`;
+                
+                qualityChart.appendChild(bar);
+            });
+        }
+
+        function updateProblemsChart(data) {
+            const problemsChart = document.getElementById('problemsChart');
+            problemsChart.innerHTML = '';
+            
+            // تجميع البيانات حسب المحطة
+            const stationData = {};
+            ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7'].forEach(station => {
+                stationData[station] = { rouge: 0, orange: 0 };
+            });
+            
+            data.forEach(item => {
+                if (stationData[item.model]) {
+                    stationData[item.model].rouge += item.rouge;
+                    stationData[item.model].orange += item.orange;
+                }
+            });
+            
+            // إنشاء الأشرطة
+            const maxProblems = Math.max(...Object.values(stationData).map(s => s.rouge + s.orange));
+            Object.keys(stationData).forEach(station => {
+                const problems = stationData[station].rouge + stationData[station].orange;
+                const percentage = maxProblems > 0 ? (problems / maxProblems) * 100 : 0;
+                
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = `${percentage}%`;
+                bar.style.backgroundColor = '#dc3545';
+                bar.innerHTML = `<div class="chart-label">${station}<br>${problems}</div>`;
+                
+                problemsChart.appendChild(bar);
+            });
+        }
+
+        function updateStationComparison(data) {
+            const comparisonContainer = document.getElementById('stationComparison');
+            
+            // تجميع البيانات حسب المحطة
+            const stationData = {};
+            ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7'].forEach(station => {
+                stationData[station] = { 
+                    production: 0, 
+                    rouge: 0, 
+                    orange: 0,
+                    problems: 0
+                };
+            });
+            
+            data.forEach(item => {
+                if (stationData[item.model]) {
+                    stationData[item.model].production += item.production;
+                    stationData[item.model].rouge += item.rouge;
+                    stationData[item.model].orange += item.orange;
+                    if (item.problems) {
+                        stationData[item.model].problems++;
+                    }
+                }
+            });
+            
+            let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">';
+            
+            Object.keys(stationData).forEach(station => {
+                const stats = stationData[station];
+                const qualityRate = stats.production > 0 ? 
+                    Math.round(((stats.production - stats.rouge - stats.orange) / stats.production) * 100) : 0;
+                
+                html += `
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; text-align: center;">
+                        <div style="font-weight: bold; color: #0055A4;">${station}</div>
+                        <div style="font-size: 0.8rem;">
+                            <div>الإنتاج: ${stats.production}</div>
+                            <div>الجودة: ${qualityRate}%</div>
+                            <div>المشاكل: ${stats.problems}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            comparisonContainer.innerHTML = html;
+        }
+
+        function getQualityColor(rate) {
+            if (rate >= 90) return '#28a745';
+            if (rate >= 80) return '#ffc107';
+            return '#dc3545';
+        }
+
+        function logout() {
+            appData.isLoggedIn = false;
+            appData.currentUser = null;
+            saveData();
+            
+            mainApp.classList.add('hidden');
+            loginPage.classList.remove('hidden');
+            loginForm.reset();
+            workerForm.classList.add('hidden');
+            loginBtn.textContent = 'تحقق من الكود';
+        }
+
+        // بدء التطبيق
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
