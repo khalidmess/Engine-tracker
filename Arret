@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>نظام تسجيل التوقفات</title>
+  <style>
+    body { font-family: Arial, Tahoma; direction: rtl; padding: 20px; max-width: 800px; margin: auto; }
+    label { display:block; margin-top:10px; }
+    input, select, textarea { padding:8px; width:100%; box-sizing:border-box; }
+    button { margin-top:12px; padding:10px 16px; }
+    .success { color: green; }
+    .error { color: red; }
+    table { width:100%; border-collapse: collapse; margin-top:16px; }
+    th, td { padding:8px; border:1px solid #ccc; text-align:center; }
+    h3 { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h2>نظام تسجيل التوقفات</h2>
+  <div>
+    <label>Modul</label>
+    <select id="modul">
+      <option value="M1">M1</option>
+      <option value="M2">M2</option>
+      <option value="M3">M3</option>
+      <option value="M4">M4</option>
+      <option value="M5">M5</option>
+      <option value="M6">M6</option>
+      <option value="M7">M7</option>
+    </select>
+
+    <label>Post (رقم المحطة)</label>
+    <input id="post" placeholder="مثال: 1" />
+
+    <label>Temps</label>
+    <select id="temps">
+      <option>Temps 1/4</option>
+      <option>Temps 2/4</option>
+      <option>Temps 3/4</option>
+      <option>Temps 4/4</option>
+    </select>
+
+    <label>عدد الدقائق (Minutes)</label>
+    <input id="minutes" type="number" min="0" value="0" />
+
+    <label>ملاحظة (اختياري)</label>
+    <textarea id="note" rows="2"></textarea>
+
+    <button id="submitBtn">سجل التوقف</button>
+    <div id="msg"></div>
+  </div>
+
+  <h3>الإحصائيات</h3>
+  <div>
+    <label>تاريخ (لالعرض اليومي)</label>
+    <input id="statDate" type="date" />
+    <button id="getDaily">عرض المجموع اليومي</button>
+  </div>
+  <div style="margin-top:16px;">
+    <label>أسبوع (رقم الأسبوع)</label>
+    <input id="weekNum" type="number" min="1" max="53" placeholder="مثلاً: 42" />
+    <label>السنة</label>
+    <input id="yearNum" type="number" min="2000" max="2100" placeholder="2025" />
+    <button id="getWeekly">عرض المجموع الأسبوعي</button>
+  </div>
+  <div id="statsResult"></div>
+
+<script>
+  const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxywAliXX-KpzlWybqxXC8O6UIXrN7QgsVU45wtT_Cn7fwb69IlvccN-Rvq8JA8CqjL/exec';
+
+  function showMsg(text, ok = true) {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = ok ? 'success' : 'error';
+    setTimeout(() => { el.textContent = ''; el.className = ''; }, 4000);
+  }
+
+  async function submitStop() {
+    const modul = document.getElementById('modul').value;
+    const post = document.getElementById('post').value;
+    const temps = document.getElementById('temps').value;
+    const minutes = Number(document.getElementById('minutes').value) || 0;
+    const note = document.getElementById('note').value;
+
+    if (!post) {
+      showMsg('عمر رقم المحطة (Post).', false);
+      return;
+    }
+    if (minutes < 0) {
+      showMsg('عدد الدقائق خاصو يكون موجب.', false);
+      return;
+    }
+
+    const payload = { modul, post, temps, minutes, note };
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.text();  // الكود البسيط يرجع نص "Success"
+      if (data.includes('Success')) {
+        showMsg('تم التسجيل بنجاح ✅');
+        document.getElementById('minutes').value = '0';
+        document.getElementById('note').value = '';
+      } else {
+        showMsg('خطأ: ' + data, false);
+      }
+    } catch (err) {
+      showMsg('خطأ فالاتصال: ' + err.message, false);
+    }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', submitStop);
+
+  async function fetchStats(url, title) {
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      renderStats(json, title);
+    } catch (err) {
+      showMsg('خطأ فالسحب: ' + err.message, false);
+    }
+  }
+
+  document.getElementById('getDaily').addEventListener('click', () => {
+    const date = document.getElementById('statDate').value;
+    if (!date) {
+      showMsg('اختار التاريخ أولاً', false);
+      return;
+    }
+    const url = API_ENDPOINT + '?action=stats&date=' + encodeURIComponent(date);
+    fetchStats(url, `مجموع اليوم: ${date}`);
+  });
+
+  document.getElementById('getWeekly').addEventListener('click', () => {
+    const wk = document.getElementById('weekNum').value;
+    const yr = document.getElementById('yearNum').value;
+    if (!wk || !yr) {
+      showMsg('عمر رقم الأسبوع و السنة', false);
+      return;
+    }
+    const url = API_ENDPOINT + '?action=weekly&week=' + encodeURIComponent(wk) + '&year=' + encodeURIComponent(yr);
+    fetchStats(url, `مجموع الأسبوع ${wk} - ${yr}`);
+  });
+
+  function renderStats(obj, title) {
+    const container = document.getElementById('statsResult');
+    let html = `<h4>${title}</h4>`;
+    html += `<table><tr><th>Modul</th><th>Minutes</th></tr>`;
+    ['M1','M2','M3','M4','M5','M6','M7'].forEach(m => {
+      const v = obj[m] || 0;
+      html += `<tr><td>${m}</td><td>${v}</td></tr>`;
+    });
+    html += `</table>`;
+    container.innerHTML = html;
+  }
+</script>
+
+</body>
+</html>
